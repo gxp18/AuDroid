@@ -29,20 +29,22 @@ import android.os.UserHandle;
 import android.provider.Settings.Global;
 import android.telecom.TelecomManager;
 import android.util.Log;
-
+import java.io.File;
 import com.android.internal.telephony.IccCardConstants;
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.policy.CastController;
 import com.android.systemui.statusbar.policy.CastController.CastDevice;
 
-
+import java.io.*; // gxp18
+import android.os.Environment; // gxp18
 
 /**
  * This class contains all of the policy about which icons are installed in the status
  * bar at boot time.  It goes through the normal API for icons, even though it probably
  * strictly doesn't need to.
  */
+
 public class PhoneStatusBarPolicy {
     private static final String TAG = "PhoneStatusBarPolicy";
 
@@ -66,7 +68,7 @@ public class PhoneStatusBarPolicy {
 	 private static final String SLOT_MIKE = "mike";
 	/**/
 
-    private final Context mContext;
+    private final Context mContext;  //gxp18
     private final StatusBarManager mService;
     private final Handler mHandler = new Handler();
     private final CastController mCast;
@@ -82,15 +84,17 @@ public class PhoneStatusBarPolicy {
 
     private boolean mBluetoothEnabled = false;
 
-	//* gxp18
-	//public native void javaCallJNI();
-	/**/
-
-
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(Context context, Intent intent) { // Method not called when Broadcast is sent from AudioSystem
+	    
+            Log.d("gxp18", "PhoneStatusBarPolicy.java received Intent "); 
             String action = intent.getAction();
+
+
+            // gxp18 - This run in an app process u0_a13    1492  197   1603080 105952 ffffffff 00000000 S com.android.systemui
+
+
             if (action.equals(AlarmManager.ACTION_NEXT_ALARM_CLOCK_CHANGED)) {
                 updateAlarm();
             }
@@ -115,6 +119,7 @@ public class PhoneStatusBarPolicy {
             }
 	    //* gxp18 
 	    else if (action.equals(Intent.ACTION_MIKE_ACCESSED)) {
+
                 enableMike();
             }
 	    else if (action.equals(Intent.ACTION_MIKE_RELEASED)) {
@@ -122,6 +127,7 @@ public class PhoneStatusBarPolicy {
             } /**/
         }
     };
+
 
     public PhoneStatusBarPolicy(Context context, CastController cast) {
         mContext = context;
@@ -141,12 +147,17 @@ public class PhoneStatusBarPolicy {
 	//* gxp18 
 	filter.addAction(Intent.ACTION_MIKE_ACCESSED);
 	filter.addAction(Intent.ACTION_MIKE_RELEASED);
+
 	/**/
         mContext.registerReceiver(mIntentReceiver, filter, null, mHandler);
 
 	//* gxp18
  	mService.setIcon(SLOT_TTY,  R.drawable.mike, 0, null); //Change the ICON LATER
         mService.setIconVisibility(SLOT_TTY, false); // Chagne it to be SLOT_MIKE to the Service
+
+	//Thread t = new PeriodicChecker();
+      	//t.start();	
+
 	/**/
 
         // TTY status
@@ -184,10 +195,7 @@ public class PhoneStatusBarPolicy {
         mService.setIconVisibility(SLOT_CAST, false);
         mCast.addCallback(mCastCallback);
 
-	//* gxp18
-	Intent intent = new Intent(Intent.ACTION_MIKE_ACCESSED);    // Move this intent in AudioSystem.cpp
-	mContext.sendBroadcast(intent);
-        /**/
+	
     }
 
     public void setZenMode(int zen) {
@@ -195,14 +203,14 @@ public class PhoneStatusBarPolicy {
         updateVolumeZen();
     }
 
-    //* gxp18 - Need to add JNI code to call it from C code
+    //* gxp18 - Methods called through Intents
     private void enableMike(){
 	mService.setIconVisibility(SLOT_TTY, true);	
     }
 
     private void disableMike(){
 	mService.setIconVisibility(SLOT_TTY, false);	
-    }/**/
+    }
 
     private void updateAlarm() {
         AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);

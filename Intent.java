@@ -2585,16 +2585,17 @@ public class Intent implements Parcelable, Cloneable {
     /**
      * @hide
      */
-	//* gxp18
+	//* gxp18 - start
+        @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
 	public static final String ACTION_MIKE_ACCESSED
             = "android.intent.action.MIKE_ACCESSED"; 
     /**
      * @hide
      */
-
+	@SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
 	public static final String ACTION_MIKE_RELEASED
             = "android.intent.action.MIKE_RELEASED";
-	/**/
+	/* gxp18 - end */
 
     /**
      * Broadcast sent to the primary user when an associated managed profile is added (the profile
